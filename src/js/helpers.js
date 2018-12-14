@@ -87,7 +87,6 @@ define([],
       if(self.isServerSet(data) == false || data.npsod.conn.report.length < 1){
         return [];
       }
-      
       return self.doGetExportFormats(data.npsod.conn.server, data.npsod.conn.report).
       then(function(response) {
         return response.data.outputFormats.map(function(format) {
@@ -104,7 +103,6 @@ define([],
       if(self.isServerSet(data) == false){
         return false;
       }
-
       return $.ajax({
         url: self.getActionURL(data, 'api/v1/login/ntlm'),
         method: 'GET',
@@ -128,12 +126,11 @@ define([],
     doDeleteTask: function(server, taskId){
       var requestUrl = this.doGetActionURL(server, 'api/v1/ondemand/requests/' + taskId);
       $.support.cors = true;
-      
 			return $.ajax({
-				url: requestUrl,
-				headers:{
-					'access-control-allow-headers':'content-type'
-				},
+        url: requestUrl,
+        headers:{
+          'access-control-allow-headers':'content-type',
+        },
 				method: 'DELETE',
 				xhrFields: {
 					withCredentials: true
@@ -146,11 +143,11 @@ define([],
 			document.getElementById('download').src = requestUrl;
     },
     
-    doGetConnections: function (server, app) {
-      var requestUrl = this.doGetActionURL(server, 'api/v1/connections?appId=' + app);
-
+		doGetConnections: function (server, app) {
+			var requestUrl = this.doGetActionURL(server, 'api/v1/connections?appId=' + app);
+      $.support.cors = true;
 			return $.ajax({
-				url: requestUrl,
+        url: requestUrl,
 				method: 'GET',
 				xhrFields: {
 					withCredentials: true

@@ -36,7 +36,7 @@ function(
 
     function getSelectedValues(selection) {
         var df = Deferred(),
-        f = app.field(selection.fieldName).getData(),
+        f = app.field(selection.fieldName).getData({rows: selection.selectedCount}),
         listener = function () {
             var isNumeric = false,
             selectedValues = f.rows.reduce(function (result, row) {
@@ -48,7 +48,7 @@ function(
                 }
                 return result;
             }, []);
-            
+
             df.resolve({
                 fieldName: selection.fieldName,
                 selectedCount: selection.selectedCount,
@@ -67,7 +67,7 @@ function(
         format = options.format,
         selections = getSelectionByApi();
 
-        return selections.then(function(allFieldSelections) {				
+        return selections.then(function(allFieldSelections) {
             return hlp.doGetConnections(conn.server, conn.app).then(function(response) {
                 var connectionId;
                 if (response.data.totalItems == 1) {
@@ -95,8 +95,12 @@ function(
                     connectionId: connectionId//'5c0af3f6-e65d-40d2-8f03-6025f8196ff'
                 };
 
+                $.support.cors = true;
                 return $.ajax({
                     url: requestUrl,
+                    headers:{
+                        'access-control-allow-headers':'content-type',
+                    },
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(onDemandRequest),
