@@ -54,6 +54,12 @@ img.npsod-img-list:hover{
 
 .npsod-export-btn {
 	width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	-ms-text-overflow: ellipsis;
+	-o-text-overflow: ellipsis;
+	white-space: nowrap;
+	text-align: center;
 }
 
 .print-on-demand .lui-list.print-overview .lui-list__item:hover {
@@ -71,6 +77,17 @@ img.npsod-img-list:hover{
 .print-on-demand .print-select-report .lui-list__item {
 	padding-top: 8px;
 	padding-bottom: 8px;
+}
+
+.loader-small {
+	max-height: 16px;
+	max-width: 16px;
+	margin: 0px 4px;
+	vertical-align: middle;
+}
+
+.btn-label {
+	vertical-align: middle;
 }
 
 .print-on-demand .print-select-report .lui-list__item .lui-list__aside {

@@ -67,7 +67,7 @@ function(
         format = options.format,
         selections = getSelectionByApi();
 
-        return selections.then(function(allFieldSelections) {				
+        return selections.then(function(allFieldSelections) {
             return hlp.doGetConnections(conn.server, conn.app).then(function(response) {
                 var connectionId;
                 if (response.data.totalItems == 1) {
@@ -121,15 +121,19 @@ function(
             $scope.downloadable = false;
 
             var conn = $scope.layout.npsod.conn;
+            conn.isLoading = false;
             var pullTaskHandler = null;
             hlp.getLoginNtlm($scope.layout);
 
             function canInteract() {
-                return $scope.object && $scope.object.getInteractionState() === 1;           
+                return $scope.object
+                    && $scope.object.getInteractionState() === 1
+                    && !conn.isLoading;
             };
 
             $scope.doExport = function() {
                 if(canInteract()) {
+                    conn.isLoading = true
                     var options = {
                         conn: conn,
                         report: conn.report,
@@ -138,6 +142,10 @@ function(
 
                     doExport(options).then(function (response) {
                         $scope.popupDg();
+                        conn.isLoading = false;
+                    }).catch(function (err) {
+                        console.log("Failed to export data: " + err.message);
+                        conn.isLoading = false;
                     });
                 }
             };

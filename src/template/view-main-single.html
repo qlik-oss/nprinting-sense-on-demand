@@ -1,5 +1,7 @@
 <div qv-extension class="npsod-canvas">
-	<button type="button" class="lui-button lui-button--gradient npsod-export-btn" >
-		{{layout.npsod.conn.label}}
+	<button type="button" class="lui-button lui-button--gradient npsod-export-btn">
+		<span ng-if="layout.npsod.conn.isLoading === true"
+			class="pp-loader qv-loader loader-small"></span>
+		<span class="btn-label">{{layout.npsod.conn.label}}</span>
 	</button>
 </div>
