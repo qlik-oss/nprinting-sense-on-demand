@@ -36,7 +36,7 @@ function(
 
     function getSelectedValues(selection) {
         var df = Deferred(),
-        f = app.field(selection.fieldName).getData(),
+        f = app.field(selection.fieldName).getData({rows: selection.totalCount}),
         listener = function () {
             var isNumeric = false,
             selectedValues = f.rows.reduce(function (result, row) {
@@ -119,6 +119,7 @@ function(
         controller: ['$scope', '$element', '$interval', function($scope, $element, $interval) {
 
             $scope.downloadable = false;
+            $scope.setLoading = function () {};
 
             var conn = $scope.layout.npsod.conn;
             var pullTaskHandler = null;
@@ -129,16 +130,8 @@ function(
             };
 
             $scope.doExport = function() {
-                if(canInteract()) {
-                    var options = {
-                        conn: conn,
-                        report: conn.report,
-                        format: conn.exportFormat
-                    };
-
-                    doExport(options).then(function (response) {
-                        $scope.popupDg();
-                    });
+                if(canInteract()) {                   
+                    $scope.popupDg();
                 }
             };
 
@@ -172,8 +165,24 @@ function(
                 qvangular.getService( "luiDialog" ).show( {
                     template: viewPopup,
                     controller: ["$scope", "$element", "$interval", function($scope, $element, $interval) {
+                        
+                        var options = {
+                            conn: conn,
+                            report: conn.report,
+                            format: conn.exportFormat
+                        };
+                        $scope.disableNewReport = true;
 
-                        $scope.stage = 'overview';
+                        var loadTimeout = setTimeout(function () {
+                            $scope.isLoading = true;
+                        }, 250);
+                        
+                        doExport(options).then(function () {
+                            clearTimeout(loadTimeout);
+                            $scope.isLoading = false;
+                            $scope.disableNewReport = false;
+                            $scope.stage = 'overview';
+                        });
 
                         pullTaskHandler = $interval(function() {
                             hlp.doGetTasks(conn.server, conn.app).then(function(response) {
@@ -229,7 +238,8 @@ function(
                         };
                     }],
                     input: {
-                        stage: $scope.stage
+                        stage: $scope.stage,
+                        setLoading: $scope.setLoading
                     },
                     closeOnEscape: true,
 
