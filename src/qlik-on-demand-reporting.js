@@ -171,24 +171,50 @@ function(
                             report: conn.report,
                             format: conn.exportFormat
                         };
-                        $scope.disableNewReport = true;
-
-                        var loadTimeout = setTimeout(function () {
-                            $scope.isLoading = true;
-                        }, 250);
+                        var responseCompare;
                         
-                        doExport(options).then(function () {
-                            clearTimeout(loadTimeout);
-                            $scope.isLoading = false;
-                            $scope.disableNewReport = false;
-                            $scope.stage = 'overview';
-                        });
+                        $scope.disableNewReport = true;
+                        $scope.message = '';
+
+                        function initExportSequence (options) {
+
+                            $scope.stage = '';
+
+                            var loadTimeout = setTimeout(function () {
+                                $scope.isLoading = true;
+                                $scope.showLoader = true;
+                                $scope.message = 'Fetching data..';
+                            }, 200);
+
+                            getTasks();
+                          
+                            return doExport(options).then(function () {
+                                clearTimeout(loadTimeout);
+                                $scope.isLoading = false;
+                                $scope.disableNewReport = false;
+                                $scope.stage = 'overview';
+                            }).catch(function () {
+                                clearTimeout(loadTimeout);
+                                $scope.isLoading = true;
+                                $scope.showLoader = false;
+                                $scope.message = 'Unable to connect to server.';
+                            });
+                        }
+
+                        function getTasks () {
+                            return hlp.doGetTasks(conn.server, conn.app).then(function(response) {
+                                if (responseCompare !== JSON.stringify(response.data.items)) {
+                                    responseCompare = JSON.stringify(response.data.items);
+                                    $scope.taskList = response.data.items;
+                                    $scope.$apply();
+                                }
+                            });
+                        }
+
+                        initExportSequence(options);
 
                         pullTaskHandler = $interval(function() {
-                            hlp.doGetTasks(conn.server, conn.app).then(function(response) {
-                                $scope.taskList = response.data.items;	
-                                $scope.$apply();
-                            });
+                            getTasks();
                         }, 1000);
 
                         $scope.go2OverviewStage = function() {
@@ -218,7 +244,7 @@ function(
                                 report: $scope.currReport.id,
                                 format: format
                             };
-                            doExport(options).then(function(){
+                            initExportSequence(options).then(function () {
                                 $scope.go2OverviewStage();
                             });
                         };

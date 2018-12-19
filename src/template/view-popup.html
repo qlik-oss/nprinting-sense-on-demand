@@ -5,8 +5,8 @@
 	</div>
 	<div class="lui-dialog__body print-on-demand">
 		<div ng-if="isLoading" class="qodr-loader-container">
-			<div class="pp-loader qv-loader"></div>
-			<span class="loading-label">Fetching data..</span>
+			<div ng-if="showLoader" class="pp-loader qv-loader"></div>
+			<span class="loading-label">{{message}}</span>
 		</div>
 		<!-- Select Report Stage -->
 		<div ng-if="stage=='overview'">
