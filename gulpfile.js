@@ -5,6 +5,7 @@ var gutil = require('gulp-util');
 var uglify = require('gulp-uglify');
 var saveLicense = require('uglify-save-license');
 var pkg = require('./package.json');
+var zip = require('gulp-zip');
 
 var DIST = './dist',
 	SRC = './src',
@@ -51,59 +52,49 @@ gulp.task('qext', function () {
 	return src.pipe(gulp.dest(DIST));
 });
 
-gulp.task('css', function () {
-	return gulp.src(SRC + '/css/*.css')
-		.pipe(cssnano())
-        .pipe(gulp.dest(DIST + '/css'));
-});
-
 gulp.task('clean', function (ready) {
 	var del = require('del');
 	del.sync([DIST]);
 	ready();
 });
 
-gulp.task('build',['clean', 'qext', 'css'], function () {
-    gulp.src([
-		SRC + '/**/*.html', 
-		SRC + '/**/*.png'
-	])
-		.pipe(gulp.dest(DIST));
+gulp.task('css', function () {
+	return gulp.src(SRC + '/css/*.css')
+		.pipe(cssnano())
+		.pipe(gulp.dest(DIST + '/css'));
+});
 
+gulp.task('add-assets', function () {
+	return gulp.src([
+		SRC + '/**/*.html',
+		SRC + '/**/*.png'
+	]).pipe(gulp.dest(DIST));
+});
+
+gulp.task('zip-build', function () {
+	return gulp.src(DIST + '/**/*')
+		.pipe(zip(`${NAME}_${pkg.version}.zip`))
+		.pipe(gulp.dest(DIST));
+});
+
+gulp.task('add-src', function () {
 	return gulp.src(SRC + '/**/*.js')
 		.pipe(uglify({
-			output:{
+			output: {
 				comments: saveLicense
 			}
-		})).on('error', function (err) { gutil.log(gutil.colors.red('[Error]'), err.toString()); })
+		}))
 		.pipe(gulp.dest(DIST));
 });
 
-gulp.task('zip', ['build'], function () {
-	var zip = require('gulp-zip');
+gulp.task('build',
+	gulp.series('clean', 'qext', 'css', 'add-assets', 'add-src')
+);
 
-	return gulp.src(DIST + '/**/*')
-		.pipe(zip(`${NAME}_${pkg.version}.zip`))
-		.pipe(gulp.dest(DIST));
-});
+gulp.task('zip',
+	gulp.series('build', 'zip-build')
+);
 
-gulp.task('debug', ['clean', 'qext', 'css'], function () {
-	return gulp.src([
-		SRC + '/**/*.css', 
-		SRC + '/**/*.png', 
-		SRC + '/**/*.js',
-		SRC + '/**/*.html',
-		DIST + '/**/*.qext'
-	])
-		.pipe(gulp.dest(DIST));
-});
-
-gulp.task('debug-zip', ['debug'], function () {
-	var zip = require('gulp-zip');
-
-	return gulp.src(DIST + '/**/*')
-		.pipe(zip(`${NAME}_${pkg.version}.zip`))
-		.pipe(gulp.dest(DIST));
-});
-
-gulp.task('default', ['build']);
+gulp.task('default',
+	gulp.series('build')
+);
