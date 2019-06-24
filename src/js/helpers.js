@@ -1,5 +1,5 @@
-define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
-  function(qlik, qvangular, $, Deferred) {
+define(["qlik", "qvangular", "jquery"],
+  function (qlik, qvangular, $) {
     'use strict';
 
     return {
@@ -13,7 +13,7 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
         var B = server;
         B.trim();
         var L = B.slice(-1);
-        if(L != "/"){
+        if (L != "/") {
           B += "/";
         }
         return B + url;
@@ -52,11 +52,11 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
 
           // Filter away those without a connection
           response.data.items.forEach(function (app) {
-            if (connections.some(function (connection) { return connection.appId === app.id })) {
+            if (connections.some(function (connection) { return connection.appId === app.id; })) {
               result.push({
-                  value: app.id,
-                  label: app.name.length > 50 ? app.name.slice(0, 47) + '...' : app.name
-                });
+                value: app.id,
+                label: app.name.length > 50 ? app.name.slice(0, 47) + '...' : app.name
+              });
             }
           });
 
@@ -84,13 +84,13 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
               return {
                 value: connection.id,
                 label: connection.name.length > 50 ? connection.name.slice(0, 47) + '...' : connection.name
-              }
+              };
             });
           });
       },
 
       // Returns all NPrinting Connections that are associated with the current qApp
-      getConnections: function(server, appId, offset) {
+      getConnections: function (server, appId, offset) {
         if (!offset) {
           offset = 0;
         }
@@ -106,7 +106,7 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
           xhrFields: {
             withCredentials: true
           }
-        }).then(function(response) {
+        }).then(function (response) {
           var result = [];
           var qApp = qlik.currApp(self);
           var qAppPattern = new RegExp('.+appid=' + qApp.id + ';.+');
@@ -174,12 +174,12 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
           return [];
         }
 
-        return this.doGetReportlist(data.npsod.conn.server, data.npsod.conn.app).then(function(reports) {
-          return reports.map(function(report) {
+        return this.doGetReportlist(data.npsod.conn.server, data.npsod.conn.app).then(function (reports) {
+          return reports.map(function (report) {
             return {
               value: report.id,
               label: report.title.length > 50 ? report.title.slice(0, 47) + '...' : report.title
-            }
+            };
           });
         });
       },
@@ -187,19 +187,19 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
       // Returns the available export formats for the set report prepared to be used in a dropdown
       getExportFormatsForDropdown: function (data) {
         var self = this;
-        if(self.isServerSet(data) == false || data.npsod.conn.report.length < 1){
+        if (self.isServerSet(data) == false || data.npsod.conn.report.length < 1) {
           return [];
         }
 
         return self.doGetExportFormats(data.npsod.conn.server, data.npsod.conn.report)
-          .then(function(response) {
-            return response.data.outputFormats.map(function(format) {
+          .then(function (response) {
+            return response.data.outputFormats.map(function (format) {
               return {
                 value: format,
                 label: format.toUpperCase()
-              }
+              };
             });
-        });
+          });
       },
 
       // Fetches the ntlm login
@@ -217,16 +217,16 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
         }).catch(function (err) {
           if (err.status === 401 || err.status === 403) {
             if (attemptCount > 3) {
-                // No more attempts
-                var qvAlertDialog = qvangular.getService('qvAlertDialog');
-                qvAlertDialog.show({
-                    title: "Unauthorized",
-                    message: "User could not be authenticated.",
-                    closeOnEscape: false
-                });
+              // No more attempts
+              var qvAlertDialog = qvangular.getService('qvAlertDialog');
+              qvAlertDialog.show({
+                title: "Unauthorized",
+                message: "User could not be authenticated.",
+                closeOnEscape: false
+              });
             } else {
-                // Try again
-                return self.getLoginNtlm(server, ++attemptCount);
+              // Try again
+              return self.getLoginNtlm(server, ++attemptCount);
             }
           }
           throw err;
@@ -234,15 +234,15 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
       },
 
       // Fetches the tasks
-      doGetTasks: function(server, app, offset) {
+      doGetTasks: function (server, app, offset) {
         if (!offset) {
           offset = 0;
         }
 
-        var df = Deferred();
+        var df = $.Deferred();
         if (!app) {
-          df.reject({message: 'Must specify app', status: 400});
-          return df.promise;
+          df.reject({ message: 'Must specify app', status: 400 });
+          return df;
         }
 
         $.ajax({
@@ -252,25 +252,25 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
           xhrFields: {
             withCredentials: true
           },
-          success: function(res) {
+          success: function (res) {
             df.resolve(res);
           },
-          error: function(err) {
+          error: function (err) {
             df.reject(err);
           }
         });
-        return df.promise;
+        return df;
       },
 
       // Deletes the task with the given id
-      doDeleteTask: function(server, taskId) {
+      doDeleteTask: function (server, taskId) {
         var requestUrl = this.doGetActionURL(server, 'api/v1/ondemand/requests/' + taskId);
         $.support.cors = true;
 
         return $.ajax({
           url: requestUrl,
-          headers:{
-            'access-control-allow-headers':'content-type'
+          headers: {
+            'access-control-allow-headers': 'content-type'
           },
           method: 'DELETE',
           xhrFields: {
@@ -282,22 +282,22 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
       // Downloads the report with the given id
       downloadTask: function (server, taskId) {
         var requestUrl = this.doGetActionURL(server, 'api/v1/ondemand/requests/' + taskId + '/result');
-        var df = Deferred();
+        var df = $.Deferred();
 
         if ((navigator.vendor && navigator.vendor.indexOf('Apple') > -1)
-            || /(Trident|MSIE)/.test(navigator.userAgent)) {
+          || /(Trident|MSIE)/.test(navigator.userAgent)) {
           // Using either an Apple browser or Internet Explorer, which are bad at handling downloads
           // in an iframe. So just open another tab instead
           window.open(requestUrl);
           df.resolve();
-          return df.promise;
+          return df;
         }
 
         $('#download').on('load', function () {
           df.resolve();
         }).attr('src', requestUrl);
-        return df.promise;
+        return df;
       },
-    }
+    };
   }
 );
