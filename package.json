@@ -1,27 +1,34 @@
 {
-    "name": "qlik-on-demand-reporting",
-    "version": "0.0.1",
-    "description": "Reporting on demand extension for Qlik Sense.",
-    "private": true,
-    "homepage": "https://github.com/bohua/nprinting-sense-on-demand",
-    "repository": "https://github.com/qlik-oss/nprinting-sense-on-demand/tree/qlik-on-demand-reporting",
-    "author": "Bohua Li",
-    "license": "MIT",
-    "scripts": {
-        "build": "gulp build",
-        "build:zip": "gulp zip"
-    },
-    "devDependencies": {
-        "del": "^2.0.2",
-        "gulp": "4.0.0",
-        "gulp-cssnano": "^2.1.0",
-        "gulp-dest": "^0.2.3",
-        "gulp-ignore": "^2.0.1",
-        "gulp-less": "^3.0.3",
-        "gulp-replace": "^0.5.4",
-        "gulp-uglify": "^3.0.1",
-        "gulp-util": "^3.0.7",
-        "gulp-zip": "^3.0.2",
-        "uglify-save-license": "^0.4.1"
-    }
+  "name": "qlik-on-demand-reporting",
+  "version": "0.0.1",
+  "description": "Reporting on demand extension for Qlik Sense.",
+  "private": true,
+  "homepage": "https://github.com/bohua/nprinting-sense-on-demand",
+  "repository": "https://github.com/qlik-oss/nprinting-sense-on-demand/tree/qlik-on-demand-reporting",
+  "author": "Bohua Li",
+  "license": "MIT",
+  "scripts": {
+    "build": "gulp build",
+    "build:zip": "gulp zip",
+    "eslint": "eslint src"
+  },
+  "devDependencies": {
+    "@babel/core": "7.1.2",
+    "@babel/polyfill": "7.0.0",
+    "@babel/preset-env": "7.1.0",
+    "babel-eslint": "10.0.1",
+    "babel-loader": "8.0.4",
+    "css-loader": "1.0.1",
+    "del": "2.0.2",
+    "eslint": "5.7.0",
+    "eslint-loader": "2.1.1",
+    "gulp": "4.0.0",
+    "gulp-util": "^3.0.7",
+    "gulp-zip": "3.0.2",
+    "html-loader": "^0.5.5",
+    "style-loader": "0.23.1",
+    "stylelint": "8.4.0",
+    "stylelint-webpack-plugin": "0.10.5",
+    "webpack": "4.20.2"
+  }
 }
