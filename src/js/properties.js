@@ -3,6 +3,7 @@ define(["./helpers"], function (hlp) {
 	var connection = {
 		type: "items",
 		label: "NPrinting Connection",
+		grouped: true,
 		items: {
 			server: {
 				ref: "npsod.conn.server",
@@ -14,23 +15,74 @@ define(["./helpers"], function (hlp) {
 					data.npsod.conn.id = "";
 				}
 			},
-			app: {
-				type: "string",
-				component: "dropdown",
-				label: "Choose App",
-				ref: "npsod.conn.app",
-				options: function(data) {
-					return hlp.getApps(data);
+			relation: {
+				type: "items",
+				items: {
+					app: {
+						type: "string",
+						component: "dropdown",
+						label: "Choose App",
+						ref: "npsod.conn.app",
+						options: function(data) {
+							return hlp.getApps(data);
+						}
+					},
+					connection: {
+						type: "string",
+						component: "dropdown",
+						label: "Choose Connection",
+						ref: "npsod.conn.id",
+						options: function(data) {
+							return hlp.getConnectionIds(data);
+						},
+						change: function (data) {
+							// Check if choosen connection have a sense app id that matches current sense app.
+							for (var i = 0; i < hlp.connections.length; i++) {
+								var connection = hlp.connections[i];
+								if (connection.id === data.npsod.conn.id) {
+									var qAppPattern = new RegExp('.+appid=' + hlp.qApp.id + ';.+');
+									hlp.connectionIdMatch = qAppPattern.test(connection.connectionString);
+									break;
+								}
+							}
+						}
+					},
+					idMissMatch: {
+						show: function() {
+							return !hlp.connectionIdMatch;
+						},
+						component: "text",
+						translation: "The sense app Id configured in this NPrinting connection does not match current sense app Id.",
+						style: "hint",
+					}
 				}
 			},
-			connection: {
-				type: "string",
-				component: "dropdown",
-				label: "Choose Connection",
-				ref: "npsod.conn.id",
-				options: function(data) {
-					return hlp.getConnectionIds(data);
-				}
+			options: {
+				type: "items",
+				items: {
+					filterConnections: {
+						label: "App/Connection filter",
+						type: "boolean",
+						ref: "useConnectionFilter",
+						component: "switch",
+						defaultValue: true,
+						options: [
+						{
+							value: true,
+							translation: "Applied",
+						},
+						{
+							value: false,
+							translation: "Bypassed",
+						},
+						],
+					},
+					allowShowDetailsMessage: {
+						component: "text",
+						translation: "Bypass this filter if you want to see connections that are not associated with current Sense app.",
+						style: "hint",
+					},
+				},
 			}
 		}
 	};

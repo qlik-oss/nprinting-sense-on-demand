@@ -31,47 +31,13 @@ function(
 ) {
     $("<style>").html(css).appendTo("head");
 
-    var app = qlik.currApp();
+    var app;
     var currentSelections;
     var currentActions = {
         export: {},
         delete: {},
         download: null,
     };
-
-    // Makes sure this is synced with the current Qlik Sense app
-    function verifySenseApp($scope) {
-        if (app.model.properties.published) {
-            // This app is published, so we assume it is working. Only bad scenario is if the user
-            // has published a duplicated app, in which case they will find out why it doesn't work
-            // in the report-dialog instead
-            return;
-        }
-
-        app.getObjectProperties($scope.layout.qInfo.qId).then(function (model) {
-            var isDirty = false;
-            if (!model.properties.npsod.conn.qAppId) {
-                // No previous app id, so assume this is the first time and update value
-                model.properties.npsod.conn.qAppId = app.id;
-                isDirty = true;
-            } else if (model.properties.npsod.conn.qAppId != app.id) {
-                // Different from previous, this means the app has been duplicated,
-                // so show message and update value
-                qvangular.getService("luiDialog").show({
-                    template: senseIdMismatchPopup,
-                    closeOnEscape: true,
-                    closeOnOutside: true,
-                  });
-                model.properties.npsod.conn.qAppId = app.id;
-                isDirty = true;
-            }
-            if (isDirty) {
-                model.setProperties(model.properties).then(function () {
-                    app.doSave();
-                });
-            }
-        });
-    }
 
     function getSelectionByApi() {
         var fp = [];
@@ -221,11 +187,12 @@ function(
         template: viewMain,
         controller: ['$scope', '$element', '$interval', function($scope, $element, $interval) {
 
-            verifySenseApp($scope);
-
+            app = hlp.qApp = qlik.currApp($scope);
             $scope.downloadable = false;
 
-            var conn = $scope.layout.npsod.conn;
+            // save model ref on helper object
+            hlp.model = $scope.object.model;
+
             var pullTaskHandler = null;
 
             function canInteract() {
@@ -234,7 +201,9 @@ function(
 
             $scope.showDialog = function() {
                 if (canInteract()) {
-                    $scope.popupDg();
+                    $scope.object.model.getLayout().then(function(layout){
+                        $scope.popupDg(layout.npsod.conn);
+                    });
                 }
             };
 
@@ -263,7 +232,7 @@ function(
             //bind the listener
             selState.OnData.bind(listener);
 
-            $scope.popupDg = function () {
+            $scope.popupDg = function (conn) {
                 qvangular.getService( "luiDialog" ).show({
                     template: viewPopup,
                     controller: ["$scope", "$interval", function($scope, $interval) {
