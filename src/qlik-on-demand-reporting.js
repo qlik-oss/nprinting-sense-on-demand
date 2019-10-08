@@ -187,12 +187,10 @@ function(
         template: viewMain,
         controller: ['$scope', '$element', '$interval', function($scope, $element, $interval) {
 
-            app = hlp.qApp = qlik.currApp($scope);
             $scope.downloadable = false;
-
-            // save model ref on helper object
-            hlp.model = $scope.object.model;
-
+            
+            var app = qlik.currApp($scope);
+            var model = $scope.object.model;
             var pullTaskHandler = null;
 
             function canInteract() {
@@ -206,6 +204,33 @@ function(
                     });
                 }
             };
+
+            if ($scope.object.layout.permissions && $scope.object.layout.permissions.update) {
+                model.getLayout().then(function(layout) {
+                    model.getProperties().then(function(props) {
+                        var isDirty = false;
+                        // Added new property for enable/disable connection filter.
+                        if (typeof layout.useConnectionFilter == "undefined") {
+                            isDirty = true;
+                            props.useConnectionFilter = true;
+                        }
+                        // Add new  property for sense app id.
+                        if (layout.npsod.conn.qApp === "" || typeof layout.npsod.conn.qApp === "undefined") {
+                            isDirty = true;
+                            props.npsod.conn.qApp = app.id;
+                        }
+                        // If connection is not set it could not missmatch.
+                        if (layout.npsod.conn.id === "") {
+                            isDirty = true;
+                            props.connectionIdMatch = true;
+                        }
+                        // Save if updated properties.
+                        if (isDirty) {
+                            model.setProperties(props);
+                        } 
+                    });
+                });
+            }
 
             // Workaround for Apple touch devices, iPad etc
             if (typeof $scope.FirstTime == "undefined") {
@@ -401,7 +426,7 @@ function(
                          hlp.getLoginNtlm(conn.server).then(function () {
                             // Make sure the Sense app is correct for this setup
                             onLoading('Connecting...');
-                            hlp.getConnections(conn.server, conn.app).then(function (connections) {
+                            hlp.getConnections(conn.server, conn.app, null, null, null, app, model).then(function (connections) {
                                 if (connections.length === 0) {
                                     onError({status: 1});
                                     return;

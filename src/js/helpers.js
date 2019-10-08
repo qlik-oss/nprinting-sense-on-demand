@@ -19,14 +19,30 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
         return B + url;
       },
 
-      getApps: function (data) {
+      getApps: function (data, qApp, model) {
         var self = this;
         var conObj = data.npsod.conn;
         return self.getLoginNtlm(conObj.server).then(function () {
-          return self.getConnections(conObj.server, null, null, data.useConnectionFilter, conObj.id)
+          return self.getConnections(conObj.server, null, null, data.useConnectionFilter, conObj.id, qApp, model)
             .then(function (connections) {
               if (!connections || connections.length == 0) {
-                return [];
+                if (conObj.app !== "") {
+                  return $.ajax({
+                    url: self.doGetActionURL(conObj.server, 'api/v1/apps/'+conObj.app),
+                    method: 'GET',
+                    xhrFields: {
+                      withCredentials: true
+                    }
+                  }).then(function (response) {
+                    var data = response.data;
+                    return [{
+                      value: data.id,
+                      label: data.name.length > 50 ? data.name.slice(0, 47) + '...' : data.name
+                    }];
+                  });
+                } else {
+                  return [];
+                }
               }
               return self.getAppsWithConnection(conObj.server, connections);
           });
@@ -75,15 +91,14 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
       },
 
       // Returns the id of the available connections.
-      getConnectionIds: function (data) {
+      getConnectionIds: function (data, qApp, model) {
         if (!this.isAppSet(data)) {
           return [];
         }
 
-        var self = this;
         var conObj = data.npsod.conn;
 
-        return this.getConnections(conObj.server, conObj.app, null, data.useConnectionFilter, conObj.id)
+        return this.getConnections(conObj.server, conObj.app, null, data.useConnectionFilter, conObj.id, qApp, model)
           .then(function (connections) {
             var foundConnection = false;
             // Check if current connection id is preset among current connection alternatives.
@@ -93,32 +108,51 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
               }
             }
             // If connection not present we need to update saved ref in obj.
-            return self.model.getProperties().then(function(props) {
-              if (!foundConnection && props.npsod.conn.id !== "") {
-                
-                props.npsod.conn.id = "";
-                props.npsod.conn.app = "";
+            return model.getProperties().then(function(props) {
+              
+              var conn = props.npsod.conn;
+
+              if (!foundConnection && conn.id !== "" && !data.useConnectionFilter) {
+
+                conn.id = "";
+                conObj.id = "";
+                props.connectionIdMatch = true;
                 // Since we no longer have a connection id it can not mismatch.
-                self.connectionIdMatch = true;
-                return self.model.setProperties(props).then(function() {
-                  return self.qApp.doSave().then(function() {
-                    return [];
-                  });
-                });            
+                return model.setProperties(props).then(function() {
+                    // TODO: Do we need to do app.Save()??
+                    return qApp.doSave().then(function() {
+                      return [];
+                    });
+                });
               } else {
+                // Reset connection if connection is set but not found in result.
+                // Could be that filter is applied and no matching connections are returned.
+                if (connections.length === 0 && conn.id !== "" && conn.app !== "") {
+                  // No connections found
+                  conn.id = "";
+                  conn.app = "";
+                  conObj.id = "";
+                  conObj.app = "";
+                } 
+                
+                if (conObj.id === "") {  
+                  props.connectionIdMatch = true;
+                  model.setProperties(props);
+                } 
+                
                 return connections.map(function(connection) {
                   return {
                     value: connection.id,
                     label: connection.name.length > 50 ? connection.name.slice(0, 47) + '...' : connection.name
                   }
-                });
+                });                              
               }
             });            
           });
       },
 
       // Returns all NPrinting Connections that are associated with the current qApp
-      getConnections: function(server, appId, offset, useFilter, currentConnId) {
+      getConnections: function(server, appId, offset, useFilter, currentConnId, qApp, model) {
         if (!offset) {
           offset = 0;
         }
@@ -139,23 +173,30 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
           self.connections = response.data.items;
 
           var result = [];
-          var qAppPattern = new RegExp('.+appid=' + self.qApp.id + ';.+');
-          response.data.items.forEach(function (connection) {
-            if (!useFilter) {
+          var qAppPattern = new RegExp('.+appid=' + qApp.id + ';.+');
 
-              if (connection.id === currentConnId) {
-                self.connectionIdMatch = qAppPattern.test(connection.connectionString);
-              }
+          response.data.items.forEach(function (connection) {
+
+            if (!useFilter) {              
+              result.push(connection);
+            } else if (qAppPattern.test(connection.connectionString)) {
               result.push(connection);
             }
-            else if (qAppPattern.test(connection.connectionString)) {
-              result.push(connection);
+
+            if (connection.id === currentConnId) {
+              if (model) {
+                model.getProperties().then(function(props) {
+                  props.connectionIdMatch = qAppPattern.test(connection.connectionString);
+                  model.setProperties(props);
+                });
+              }
             }
           });
+
           var nextOffset = response.data.items.length + response.data.offset;
           if (nextOffset < response.data.totalItems) {
             // Not processed all yet
-            return self.getConnections(server, appId, nextOffset, useFilter).then(function (connections) {
+            return self.getConnections(server, appId, nextOffset, useFilter, currentConnId, qApp, model).then(function (connections) {
               return result.concat(connections);
             });
           }

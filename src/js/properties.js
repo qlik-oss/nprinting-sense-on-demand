@@ -1,5 +1,5 @@
 define(["./helpers"], function (hlp) {
-	
+
 	var connection = {
 		type: "items",
 		label: "NPrinting Connection",
@@ -23,8 +23,8 @@ define(["./helpers"], function (hlp) {
 						component: "dropdown",
 						label: "Choose App",
 						ref: "npsod.conn.app",
-						options: function(data) {
-							return hlp.getApps(data);
+						options: function(data, handler, obj) {
+							return hlp.getApps(data, handler.app, obj.model);
 						}
 					},
 					connection: {
@@ -32,27 +32,38 @@ define(["./helpers"], function (hlp) {
 						component: "dropdown",
 						label: "Choose Connection",
 						ref: "npsod.conn.id",
-						options: function(data) {
-							return hlp.getConnectionIds(data);
-						},
-						change: function (data) {
-							// Check if choosen connection have a sense app id that matches current sense app.
-							for (var i = 0; i < hlp.connections.length; i++) {
-								var connection = hlp.connections[i];
-								if (connection.id === data.npsod.conn.id) {
-									var qAppPattern = new RegExp('.+appid=' + hlp.qApp.id + ';.+');
-									hlp.connectionIdMatch = qAppPattern.test(connection.connectionString);
-									break;
-								}
-							}
+						options: function(data, handler, obj) {
+
+							var model = obj.model;
+							var app = handler.app;
+
+							return model.getProperties().then(function(props) {
+
+								var connQAppId = props.npsod.conn.qApp;
+
+								// Check if saved app id corresponds to current app id.
+								if (handler.app.id !== connQAppId && typeof connQAppId !== "undefined") {
+									
+									props.npsod.conn.qApp = handler.app.id;
+									props.useConnectionFilter = false;
+
+									return model.setProperties(props).then(function() {
+										return model.getLayout().then(function(layout) {
+											return hlp.getConnectionIds(layout, app, model);
+										});										
+									});
+								} else {
+									return hlp.getConnectionIds(data, app, model);
+								}								
+							});
 						}
 					},
 					idMissMatch: {
-						show: function() {
-							return !hlp.connectionIdMatch;
+						show: function(data) {
+							return !data.connectionIdMatch;
 						},
 						component: "text",
-						translation: "The sense app Id configured in this NPrinting connection does not match current sense app Id.",
+						translation: "This connection does not have the current sense app configured and can result in broken reports if selections in target app is a mismatch.",
 						style: "hint",
 					}
 				}
@@ -65,7 +76,6 @@ define(["./helpers"], function (hlp) {
 						type: "boolean",
 						ref: "useConnectionFilter",
 						component: "switch",
-						defaultValue: true,
 						options: [
 						{
 							value: true,
