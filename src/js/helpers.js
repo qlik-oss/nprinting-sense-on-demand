@@ -135,9 +135,13 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
                   conObj.app = "";
                 } 
                 
-                if (conObj.id === "") {  
-                  props.connectionIdMatch = true;
-                  model.setProperties(props);
+                if (conObj.id === "") {
+                  model.getLayout().then(function(layout) {
+                    if (layout.npsod.conn.id !== "") {
+                      props.connectionIdMatch = true;
+                      model.setProperties(props);
+                    }                    
+                  });                  
                 } 
                 
                 return connections.map(function(connection) {
@@ -186,8 +190,12 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
             if (connection.id === currentConnId) {
               if (model) {
                 model.getProperties().then(function(props) {
-                  props.connectionIdMatch = qAppPattern.test(connection.connectionString);
-                  model.setProperties(props);
+                  var isMatch = qAppPattern.test(connection.connectionString);
+                  
+                  if (isMatch !== props.connectionIdMatch) {
+                    props.connectionIdMatch = props.npsod.conn.id === "" ? true : isMatch;
+                    model.setProperties(props);
+                  }                  
                 });
               }
             }

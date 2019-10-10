@@ -50,7 +50,7 @@ define(["./helpers"], function (hlp) {
 									return model.setProperties(props).then(function() {
 										return model.getLayout().then(function(layout) {
 											return hlp.getConnectionIds(layout, app, model);
-										});										
+										});
 									});
 								} else {
 									return hlp.getConnectionIds(data, app, model);
@@ -63,8 +63,10 @@ define(["./helpers"], function (hlp) {
 							return !data.connectionIdMatch;
 						},
 						component: "text",
-						translation: "This connection does not have the current sense app configured and can result in broken reports if selections in target app is a mismatch.",
+						translation: "This connection is not configured with current sense app which can result in broken reports if selections in target app is a mismatch.",
 						style: "hint",
+						banner: true,
+						icon: "lui-icon--warning"
 					}
 				}
 			},

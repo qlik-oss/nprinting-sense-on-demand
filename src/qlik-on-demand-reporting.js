@@ -188,7 +188,7 @@ function(
         controller: ['$scope', '$element', '$interval', function($scope, $element, $interval) {
 
             $scope.downloadable = false;
-            
+
             var app = qlik.currApp($scope);
             var model = $scope.object.model;
             var pullTaskHandler = null;
@@ -227,7 +227,7 @@ function(
                         // Save if updated properties.
                         if (isDirty) {
                             model.setProperties(props);
-                        } 
+                        }
                     });
                 });
             }
