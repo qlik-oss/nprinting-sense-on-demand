@@ -13,7 +13,6 @@ define([
     "text!./css/qlik-on-demand-reporting.css",
     "text!./template/view-main-single.html",
     "text!./template/view-popup.html",
-    'text!./template/view-senseid-mismatch-popup.html',
     "qvangular",
     "core.utils/deferred"
 ],
@@ -25,7 +24,6 @@ function(
     css,
     viewMain,
     viewPopup,
-    senseIdMismatchPopup,
     qvangular,
     Deferred
 ) {
