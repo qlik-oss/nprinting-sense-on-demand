@@ -127,7 +127,7 @@ define(["qlik", "qvangular", "jquery", "core.utils/deferred"],
               } else {
                 // Reset connection if connection is set but not found in result.
                 // Could be that filter is applied and no matching connections are returned.
-                if (connections.length === 0 && conn.id !== "" && conn.app !== "") {
+                if (connections.length === 0 && conn.id !== "" && conn.app !== "" && props.useConnectionFilter) {
                   // No connections found
                   conn.id = "";
                   conn.app = "";
