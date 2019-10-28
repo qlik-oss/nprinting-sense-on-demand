@@ -7,7 +7,7 @@ define(["./helpers"], function (hlp) {
 		items: {
 			server: {
 				ref: "npsod.conn.server",
-				label: "Server Connection",
+				label: "NPrinting server url",
 				type: "string",
 				expression: false,
 				change: function(data) {
@@ -21,16 +21,16 @@ define(["./helpers"], function (hlp) {
 					app: {
 						type: "string",
 						component: "dropdown",
-						label: "Choose App",
+						label: "NPrinting app",
 						ref: "npsod.conn.app",
 						options: function(data, handler, obj) {
-							return hlp.getApps(data, handler.app, obj.model);
+							return hlp.getApps(data, handler.app, obj.model);					
 						}
 					},
 					connection: {
 						type: "string",
 						component: "dropdown",
-						label: "Choose Connection",
+						label: "NPrinting connection",
 						ref: "npsod.conn.id",
 						options: function(data, handler, obj) {
 
@@ -81,11 +81,11 @@ define(["./helpers"], function (hlp) {
 						options: [
 						{
 							value: true,
-							translation: "Applied",
+							translation: "On",
 						},
 						{
 							value: false,
-							translation: "Bypassed",
+							translation: "Off",
 						},
 						],
 					},
