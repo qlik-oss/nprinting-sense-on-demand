@@ -7,7 +7,7 @@ define(["./helpers"], function (hlp) {
 		items: {
 			server: {
 				ref: "npsod.conn.server",
-				label: "NPrinting server url",
+				label: "NPrinting server URL",
 				type: "string",
 				expression: false,
 				change: function(data) {
@@ -63,7 +63,7 @@ define(["./helpers"], function (hlp) {
 							return !data.connectionIdMatch;
 						},
 						component: "text",
-						translation: "This connection is not configured with current sense app which can result in broken reports if selections in target app is a mismatch.",
+						translation: "This connection is not configured with the current Qlik Sense app. If selections in the target do not match, you may get broken reports.",
 						style: "hint",
 						banner: true,
 						icon: "lui-icon--warning"
@@ -91,7 +91,7 @@ define(["./helpers"], function (hlp) {
 					},
 					allowShowDetailsMessage: {
 						component: "text",
-						translation: "Bypass this filter if you want to see connections that are not associated with current Sense app.",
+						translation: "Turn off this filter if you want to see connections that are not associated with the current Qlik Sense app.",
 						style: "hint",
 					},
 				},
