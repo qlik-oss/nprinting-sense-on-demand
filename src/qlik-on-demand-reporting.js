@@ -39,9 +39,6 @@ function(
         download: null,
     };
 
-
-    console.warn();
-
     function getSelectionByApi() {
         var fp = [];
         currentSelections.map(function(selection) {
